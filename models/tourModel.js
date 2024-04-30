@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-// eslint-disable-next-line import/no-extraneous-dependencies
 const slugify = require("slugify");
+// const User = require("./userModel");
 
 const tourSchema = new mongoose.Schema(
   {
@@ -102,6 +102,12 @@ const tourSchema = new mongoose.Schema(
         day: Number,
       },
     ],
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },
@@ -119,6 +125,14 @@ tourSchema.pre("save", function (next) {
   next();
 });
 
+//   //! EMBEDDING
+// tourSchema.pre("save", async function (next) {
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+
+//   next();
+// });
+
 // tourSchema.pre("save", function (next) {
 //   console.log("Will save document");
 //   next();
@@ -135,6 +149,14 @@ tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
   this.start = Date.now();
 
+  next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "guides",
+    select: "-__v -passwordChangedAt",
+  });
   next();
 });
 
