@@ -119,6 +119,14 @@ tourSchema.virtual("durationWeeks").get(function () {
   return this.duration / 7; // ! Arrow function doest not get any `this` key work
 });
 
+// ! Virtual Populate
+// ! Parent ref was used for tour->review
+tourSchema.virtual("reviews", {
+  ref: "Review",
+  foreignField: "tour",
+  localField: "_id",
+});
+
 // ! DOCUMENT MIDDLEWARE: runs before .save() and .create() command
 tourSchema.pre("save", function (next) {
   this.slug = slugify(this.name, { lower: true });
