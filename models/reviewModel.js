@@ -64,15 +64,35 @@ reviewSchema.statics.calcAverageRatings = async function (tourId) {
     },
   ]);
 
-  await Tour.findByIdAndUpdate(tourId, {
-    ratingsQuantity: stats[0].nRating,
-    ratingsAverage: stats[0].avgRating,
-  });
+  if (stats.length > 0) {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating,
+    });
+  } else {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: 0,
+      ratingsAverage: 4.5,
+    });
+  }
 };
 
 reviewSchema.post("save", function () {
   // ! As `Review` is not yet declared we need to use `this.contructor` instead of Review
+  // ! for this type of middlewares, `this` keyword refers to the `current object`
   this.constructor.calcAverageRatings(this.tour);
+});
+
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  // ! Here the `this` keyword refers to the `current query`
+  this.r = await this.findOne(); // ! Now r is the document
+
+  next();
+});
+
+reviewSchema.post(/^findOneAnd/, async function () {
+  // ! await this.findOne(); does not work here because the query has already been executed
+  await this.r.constructor.calcAverageRatings(this.r.tour);
 });
 
 const Review = mongoose.model("Review", reviewSchema);
