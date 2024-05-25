@@ -23,6 +23,13 @@ router
     tourController.getMonthlyPlan
   );
 
+// we could do it like this: /tour-distance?distance=222&center=[-40,45]&unit=km
+router
+  .route("/tours-within/:distance/center/:latlng/unit/:unit")
+  .get(tourController.getToursWithin);
+
+router.route("/distances/:latlng/unit/:unit").get(tourController.getDistances);
+
 router
   .route("/")
   .get(tourController.getAllTours)
